@@ -4418,8 +4418,6 @@ and |session|:
 
 <div algorithm>
 
-Issue: TODO distinguish between `List` and `Array`.
-
 Note: A `List` is an ordered collection of values, these values can be of various data types and mathematical operations
  can't be performed on the `List`. The `List` itself is dynamic in size so it grows or shrinks dependent on the number
  of values within it, this allows for effecient memory use as the list doesn't use any more memory than it needs at any
