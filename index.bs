@@ -4420,6 +4420,16 @@ and |session|:
 
 Issue: TODO distinguish between `List` and `Array`.
 
+Note: A `List` is an ordered collection of values, these values can be of various data types and mathematical operations
+ can't be performed on the `List`. The `List` itself is dynamic in size so it grows or shrinks dependent on the number
+ of values within it, this allows for effecient memory use as the list doesn't use any more memory than it needs at any
+ given point, this makes it ideal for working with data that changes frequently. However, compared to an `Array`, a
+ `List` uses more memory due to its assocciated metadata. In comparisson an `Array` is an unordered collection of values
+  but all the values must be the same data type and unlike the `List`, mathematical operations can be performed on it.
+  It consumes less memory than a `List` and its fixed size also means that it has predictable memory use, however, the fixed
+  size also means that it's possible to define more space in the array than necessary. As it's not dynamic, it can't be
+  resized during runtime.
+
 To <dfn>deserialize value list</dfn> given |serialized value list|, |realm| and
 |session|:
 
