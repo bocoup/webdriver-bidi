@@ -37,6 +37,9 @@ spec: RFC6455; urlPrefix: https://tools.ietf.org/html/rfc6455
 spec: RFC8610; urlPrefix: https://tools.ietf.org/html/rfc8610
   type: dfn
     text: match a CDDL specification; url: appendix-C
+spec: RFC6265; urlPrefix: https://httpwg.org/specs/rfc6265.html
+  type: dfn
+    text: Cookie; url: section-5.3
 spec: WEBDRIVER; urlPrefix: https://w3c.github.io/webdriver/
   type: dfn
     text: WebDriver new session algorithm; url: dfn-webdriver-new-session-algorithm
@@ -8401,24 +8404,19 @@ StorageResult = (
 
 ### Types ### {#module-storage-types}
 
-#### The storage.Cookie Type #### {#type-storage-Cookie}
+#### The storage.PartitionKey Type #### {#type-storage-PartitionKey}
 
 [=Remote end definition=] and [=Local end definition=]
 
 <pre class="cddl local-cddl remote-cddl">
-storage.Cookie = {
-    name: text;
-    value: text;
-    host: text;
-    ? partitionKey: {
-        Extensible
-    };
+storage.PartitionKey {
+    ? container: text,
+    ? sourceOrigin: text,
+    Extensible,
 }
 </pre>
 
-The <code>storage.Cookie</code> type provides details of a given cookie.
-
-Issue: Confirm if <code>cookie</code> type should be consolidated in one place <code>storage.Cookie</code> or <code>Network.Cookie</code>.
+The <code>storage.PartitionKey</code> type describes namespaces within which the user agent may organize persistent data such as [=cookies=] and local storage.
 
 A [=remote end=] has a [=/set=] of <dfn>storage partition keys</dfn> which contains zero or more implementation-defined string values.
 
@@ -8435,7 +8433,12 @@ The <dfn export for=commands>storage.getCookie</dfn> command  specific cookie ch
    <dd>
     <pre class="cddl remote-cddl">
         storage.GetCookie = {
+          method: "storage.getCookie",
+          params: storage.GetCookieParameters,
+        }
 
+        storage.GetCookieParameters = {
+          ? partitionKey: storage.PartitionKey,
         }
     </pre>
    </dd>
@@ -8443,7 +8446,7 @@ The <dfn export for=commands>storage.getCookie</dfn> command  specific cookie ch
    <dd>
     <pre class="cddl local-cddl">
       storage.GetCookieResult = {
-        data: text
+        cookies: [*network.Cookie]
       }
     </pre>
    </dd>
@@ -8459,7 +8462,13 @@ given top-level browsing context.
    <dd>
     <pre class="cddl remote-cddl">
         storage.SetCookie = {
+          method: "storage.setCookie",
+          params: storage.SetCookieParameters,
+        }
 
+        storage.SetCookieParameters = {
+          cookies: [+network.Cookie],
+          ? partitionKey: storage.PartitionKey,
         }
     </pre>
    </dd>
@@ -8467,7 +8476,7 @@ given top-level browsing context.
    <dd>
     <pre class="cddl local-cddl">
       storage.SetCookieResult = {
-        data: text
+        partitionKey: storage.partitionKey
       }
     </pre>
    </dd>
@@ -8482,9 +8491,21 @@ The <dfn export for=commands>storage.deleteCookie</dfn> command removes the spec
    <dd>
     <pre class="cddl remote-cddl">
         storage.DeleteCookie = {
+          method: "storage.deleteCookie",
+          params: storage.DeleteCookieParameters,
+        }
 
+        storage.DeleteCookieParameters = {
+          cookie: text,
+          ? partitionKey: storage.PartitionKey,
         }
     </pre>
+   </dd>
+   <dt>Result Type</dt>
+   <dd>
+     <pre class="cddl">
+        EmptyResult
+     </pre>
    </dd>
 </dl>
 
