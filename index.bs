@@ -8434,10 +8434,11 @@ The <dfn export for=commands>storage.getCookie</dfn> command  specific cookie ch
     <pre class="cddl remote-cddl">
         storage.GetCookie = {
           method: "storage.getCookie",
-          params: storage.GetCookieParameters,
+          params: storage.GetCookieParameters
         }
 
         storage.GetCookieParameters = {
+          cookie: { ? ~ network.Cookie },
           ? partitionKey: storage.PartitionKey,
         }
     </pre>
