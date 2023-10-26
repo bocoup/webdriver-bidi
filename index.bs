@@ -40,6 +40,7 @@ spec: RFC8610; urlPrefix: https://tools.ietf.org/html/rfc8610
 spec: RFC6265; urlPrefix: https://httpwg.org/specs/rfc6265.html
   type: dfn
     text: Cookie; url: section-5.3
+    text: Cookie store; url: section-5.3
 spec: WEBDRIVER; urlPrefix: https://w3c.github.io/webdriver/
   type: dfn
     text: WebDriver new session algorithm; url: dfn-webdriver-new-session-algorithm
@@ -510,6 +511,9 @@ with the following additional codes:
   <dt><dfn>no such script</dfn>
   <dd>Tried to remove an unknown [=preload script=].
 
+  <dt><dfn>no such storage partition</dfn>
+  <dd>Tried to access data in a non-existent storage partition.
+
   <dt><dfn>unable to close browser</dfn>
   <dd>Tried to close the browser, but failed to do so.
 </dl>
@@ -526,6 +530,7 @@ ErrorCode = "invalid argument" /
             "no such node" /
             "no such request" /
             "no such script" /
+            "no such storage partition" /
             "session not created" /
             "unable to capture screen" /
             "unable to close browser" /
@@ -4197,7 +4202,7 @@ To <dfn>get the request data</dfn> given |request|:
 
   1. If |name| is a [=byte-case-insensitive=] match for "<code>Cookie</code>" then:
 
-    1. For each |cookie| in the user agent's cookie store that are included in
+    1. For each |cookie| in the user agent's <a>cookie store</a> that are included in
        |request|:
 
        Note: [[COOKIES]] defines some baseline requirements for which cookies in
@@ -8387,8 +8392,8 @@ events related to storage.
 
 <pre class="cddl remote-cddl">
 StorageCommand = (
-  storage.GetCookie //
-  storage.SetCookie //
+  storage.GetCookies //
+  storage.SetCookies //
   storage.DeleteCookie
 )
 </pre>
@@ -8397,8 +8402,8 @@ StorageCommand = (
 
 <pre class="cddl local-cddl">
 StorageResult = (
-  storage.GetCookieResult //
-  storage.SetCookieResult
+  storage.GetCookiesResult //
+  storage.SetCookiesResult
 )
 </pre>
 
@@ -8420,25 +8425,50 @@ The <code>storage.PartitionKey</code> type describes namespaces within which the
 
 A [=remote end=] has a [=/set=] of <dfn>storage partition keys</dfn> which contains zero or more implementation-defined string values.
 
-A [=remote end=] has a [=/map=] of <dfn>default values for storage partition keys</dfn> which contains zero or more implementation-defined entries. Each key must be a member of the [=storage partition keys=] which the [=remote end=] does not require as input to [=storage.getCookie=], [=storage.setCookie=], and [=storage.deleteCookie=]; the corresponding value is a the value which the [=remote end=] uses when one is not provided.
+A [=remote end=] has a [=/map=] of <dfn>default values for storage partition keys</dfn> which contains zero or more implementation-defined entries. Each key must be a member of the [=storage partition keys=] which the [=remote end=] does not require as input to [=storage.getCookies=], [=storage.setCookies=], and [=storage.deleteCookie=]; the corresponding value is a the value which the [=remote end=] uses when one is not provided.
+
+<div algorithm>
+To <dfn>get the cookie store</dfn> given |storage partition key|:
+
+1. For each |name| → |value| in the [=default values for storage partition keys=]:
+  1. If |storage partition key|[|name|] does not [=map/exist=]:
+    1. [=map/Set=] |storage partition key|[|name|] to |value|.
+1. If a <a>cookie store</a> exists for |storage partition key|:
+  1. Return the matching <a>cookie store</a>.
+1. Return [=error=] with [=error code=] [=no such storage partition=].
+
+</div>
+
+<div algorithm>
+To <dfn>get matching cookies</dfn> given |cookie store| and |filter|:
+
+1. Issue: TODO: Specify. This likely has to replicate a lot of the logic from
+  RFC6265 because the algorithms there assume operations are scoped to a
+  particular domain, and this operation is not necessarily scoped in that way.
+
+</div>
 
 ### Commands ### {#module-storage-commands}
 
-#### The storage.getCookie Command ####  {#command-storage-getCookie}
+#### The storage.getCookies Command ####  {#command-storage-getCookies}
 
-The <dfn export for=commands>storage.getCookie</dfn> command  specific cookie characteristics (e.g. ) on the given top-level browsing context.
+The <dfn export for=commands>storage.getCookies</dfn> command  specific cookie characteristics (e.g. ) on the given top-level browsing context.
 
 <dl>
    <dt>Command Type</dt>
    <dd>
     <pre class="cddl remote-cddl">
-        storage.GetCookie = {
-          method: "storage.getCookie",
-          params: storage.GetCookieParameters
+        storage.GetCookies = {
+          method: "storage.getCookies",
+          params: storage.GetCookiesParameters
         }
 
-        storage.GetCookieParameters = {
-          cookie: { ? ~ network.Cookie },
+        storage.CookieFilter = {
+          ? ~ network.Cookie
+        }
+
+        storage.GetCookiesParameters = {
+          cookie: storage.CookieFilter,
           ? partitionKey: storage.PartitionKey,
         }
     </pre>
@@ -8446,29 +8476,51 @@ The <dfn export for=commands>storage.getCookie</dfn> command  specific cookie ch
    <dt>Result Type</dt>
    <dd>
     <pre class="cddl local-cddl">
-      storage.GetCookieResult = {
+      storage.GetCookiesResult = {
         cookies: [*network.Cookie]
       }
     </pre>
    </dd>
 </dl>
 
-#### The storage.setCookie Command ####  {#command-storage-setCookie}
+<div algorithm="remote end steps for script.getCookies">
+The [=remote end steps=] with <var ignore>session</var> and |command parameters| are:
 
-The <dfn export for=commands>storage.setCookie</dfn> command  specific cookie characteristics (e.g. ) on the
+1. Let |filter| be the value of the <code>cookie</code> field of |command paramaters|.
+1. Let |partition key| be the value of the <code>partitionKey</code> field of
+  |command parameters| if it is present or an empty [=/map=] if it isn't.
+1. Let |store| be the result of [=trying=] to [=get the cookie store=] with
+  |partition key|.
+1. Let |cookies| be the result of [=get matching cookies=] with |store| and |filter|.
+1. Let |body| be a [=/map=] matching the <code>storage.GetCookiesResult</code> production,
+  with the <code>cookies</code> field set to |cookies|.
+1. Return [=success=] with data |body|.
+
+</div>
+
+#### The storage.setCookies Command ####  {#command-storage-setCookies}
+
+The <dfn export for=commands>storage.setCookies</dfn> command  specific cookie characteristics (e.g. ) on the
 given top-level browsing context.
 
 <dl>
    <dt>Command Type</dt>
    <dd>
     <pre class="cddl remote-cddl">
-        storage.SetCookie = {
-          method: "storage.setCookie",
-          params: storage.SetCookieParameters,
+        storage.SetCookies = {
+          method: "storage.setCookies",
+          params: storage.SetCookiesParameters,
         }
 
-        storage.SetCookieParameters = {
-          cookies: [+network.Cookie],
+        storage.PartialCookie = {
+          name: text,
+          value: network.BytesValue,
+          domain: text,
+          ? ~ network.Cookie
+        }
+
+        storage.SetCookiesParameters = {
+          cookies: [+storage.PartialCookie],
           ? partitionKey: storage.PartitionKey,
         }
     </pre>
@@ -8476,12 +8528,19 @@ given top-level browsing context.
    <dt>Result Type</dt>
    <dd>
     <pre class="cddl local-cddl">
-      storage.SetCookieResult = {
+      storage.SetCookiesResult = {
         partitionKey: storage.partitionKey
       }
     </pre>
    </dd>
 </dl>
+
+<div algorithm="remote end steps for script.setCookies">
+The [=remote end steps=] with <var ignore>session</var> and |command parameters| are:
+
+1. Issue: TODO: Specify.
+
+</div>
 
 #### The storage.deleteCookie Command ####  {#command-storage-deleteCookie}
 
@@ -8497,7 +8556,7 @@ The <dfn export for=commands>storage.deleteCookie</dfn> command removes the spec
         }
 
         storage.DeleteCookieParameters = {
-          cookie: text,
+          cookie: storage.CookieFilter,
           ? partitionKey: storage.PartitionKey,
         }
     </pre>
@@ -8510,6 +8569,20 @@ The <dfn export for=commands>storage.deleteCookie</dfn> command removes the spec
    </dd>
 </dl>
 
+<div algorithm="remote end steps for script.deleteCookies">
+The [=remote end steps=] with <var ignore>session</var> and |command parameters| are:
+
+1. Let |filter| be the value of the <code>cookie</code> field of |command paramaters|.
+1. Let |partition key| be the value of the <code>partitionKey</code> field of
+  |command parameters| if it is present or an empty [=/map=] if it isn't.
+1. Let |store| be the result of [=trying=] to [=get the cookie store=] with
+  |partition key|.
+1. Let |cookies| be the result of [=get matching cookies=] with |store| and |filter|.
+1. For each |cookie| in |cookies|:
+  1. Remove |cookie| from |store|.
+1. Return [=success=] with data null.
+
+</div>
 
 ## The log Module ## {#module-log}
 
