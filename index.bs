@@ -8659,8 +8659,10 @@ The [=remote end steps=] with <var ignore>session</var> and |command parameters|
 1. Let |partition key| be the result of [=expand a storage partition key spec|expanding=] |partition key spec|.
 1. Let |store| be the result of [=trying=] to [=get the cookie store=] with
   |partition key|.
+1. Let |deserialized value| be [=deserialize protocol bytes=] with
+  |cookie spec|["<code>value</code>"].
 1. [=Create a cookie=] in |store| using [=cookie name=] |cookie spec|["<code>name</code>"],
-  [=cookie value=] |cookie spec|["<code>value</code>"], [=cookie domain=]
+  [=cookie value=] |deserialized value|, [=cookie domain=]
   |cookie spec|["<code>domain</code>"], and an attribute-value list of the
   following cookie concepts listed in the [=table for cookie conversion=]:
 
