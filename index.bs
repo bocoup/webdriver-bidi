@@ -41,6 +41,10 @@ spec: RFC6265; urlPrefix: https://httpwg.org/specs/rfc6265.html
   type: dfn
     text: Cookie; url: section-5.3
     text: Cookie store; url: section-5.3
+spec: RFC6265bis; urlPrefix: https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-05
+  type: dfn
+    text: Lax; url: section-4.1.2.7
+    text: Strict; url: section-4.1.2.7
 spec: WEBDRIVER; urlPrefix: https://w3c.github.io/webdriver/
   type: dfn
     text: WebDriver new session algorithm; url: dfn-webdriver-new-session-algorithm
@@ -50,6 +54,7 @@ spec: WEBDRIVER; urlPrefix: https://w3c.github.io/webdriver/
     text: additional capability deserialization algorithm; url: dfn-additional-capability-deserialization-algorithm
     text: capability name; url: dfn-capability-name
     text: close the session; url: dfn-close-the-session
+    text: create a cookie; url: dfn-creating-a-cookie
     text: create a session; url: dfn-create-a-session
     text: dispatch actions; url: dfn-dispatch-actions
     text: dispatch tick actions; url: dfn-dispatch-tick-actions
@@ -8453,7 +8458,7 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
 <p>The following <dfn>table for cookie conversion</dfn>
  defines the cookie concepts relevant to WebDriver BiDi,
  how these are referred to in [[COOKIES]],
- as well as what keys they map to in a <a>serialized cookie</a>.
+ as well as what keys they map to in a [=serialized cookie=].
 
 <p>For informational purposes,
  the table includes a brief non-normative description of the field.
@@ -8486,7 +8491,7 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
   <td>"<code>path</code>"
   <td>The cookie path.
    Defaults to "<code>/</code>"
-   if omitted when <a>adding a cookie</a>.
+   if omitted when [=storage.setCookie|setting a cookie=].
  </tr>
 
  <tr>
@@ -8494,9 +8499,6 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
   <td><code>domain</code>
   <td>"<code>domain</code>"
   <td>The domain the cookie is visible to.
-   Defaults to the <a>current browsing context</a>’s
-   <a>active document</a>’s <a>URL</a> <a>domain</a>
-   if omitted when <a>adding a cookie</a>.
  </tr>
 
  <tr>
@@ -8504,7 +8506,7 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
   <td><code>secure-only-flag</code>
   <td>"<code>secure</code>"
   <td>Whether the cookie is a secure cookie.
-   Defaults to false if omitted when <a>adding a cookie</a>.
+   Defaults to false if omitted when [=storage.setCookie|setting a cookie=].
  </tr>
 
  <tr>
@@ -8512,7 +8514,7 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
   <td><code>http-only-flag</code>
   <td>"<code>httpOnly</code>"
   <td>Whether the cookie is an HTTP only cookie.
-   Defaults to false if omitted when <a>adding a cookie</a>.
+   Defaults to false if omitted when [=storage.setCookie|setting a cookie=].
  </tr>
 
  <tr>
@@ -8520,8 +8522,8 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
   <td><code>expiry-time</code>
   <td>"<code>expires</code>"
   <td>When the cookie expires, specified in seconds since
-   <a>Unix Epoch</a>.  Must not be set if omitted when
-   <a>adding a cookie</a>.
+   <a>Unix Epoch</a>. Must not be set if omitted when
+   [=storage.setCookie|setting a cookie=].
 
  </tr>
 
@@ -8530,8 +8532,8 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
   <td><code>samesite</code>
   <td>"<code>sameSite</code>"
   <td>Whether the cookie applies to a SameSite policy.
-    Defaults to None if omitted when <a>adding a cookie</a>.
-    Can be set to either <a><code>Lax</code></a> or <a><code>Strict</code></a>.
+    Defaults to None if omitted when [=storage.setCookie|setting a cookie=].
+    Can be set to either <code>[=Lax=]</code> or <code>[=Strict=]</code>.
  </tr>
 </table>
 
@@ -8651,15 +8653,38 @@ given top-level browsing context.
 <div algorithm="remote end steps for script.setCookie">
 The [=remote end steps=] with <var ignore>session</var> and |command parameters| are:
 
+1. Let |cookie spec| be the value of the <code>cookie</code> field of |command parameters|.
+1. If |cookie spec|["<code>size</code>"] exists:
+  1. Return an [=error=] with [=error code=] [=invalid argument=].
 1. Let |partition key spec| be the value of the <code>partitionKey</code> field of
   |command parameters| if it is present or null if it isn't.
 1. Let |partition key| be the result of [=expand a storage partition key spec|expanding=] |partition key spec|.
 1. Let |store| be the result of [=trying=] to [=get the cookie store=] with
   |partition key|.
-1. Let |cookie spec| be the value of the <code>cookie</code> field of |commmand parameters|.
-1. If |cookie spec|["<code>size</code>"] exists:
-  1. Return an [=error=] with [=error code=] [=invalid argument=].
-1. Issue: TODO: Specify.
+1. [=Create a cookie=] in |store| using [=cookie name=] |cookie spec|["<code>name</code>"],
+  [=cookie value=] |cookie spec|["<code>value</code>"], [=cookie domain=]
+  |cookie spec|["<code>domain</code>"], and an attribute-value list of the
+  following cookie concepts listed in the [=table for cookie conversion=]:
+
+  <dl>
+   <dt><a>Cookie path</a>
+   <dd><p>|cookie spec|["<code>path</code>"] if it exists, otherwise "<code>/</code>".
+
+   <dt><a>Cookie secure only</a>
+   <dd><p>|cookie spec|["<code>secure</code>"] if it exists, otherwise false.
+
+   <dt><a>Cookie HTTP only</a>
+   <dd><p>|cookie spec|["<code>httpOnly</code>"] if it exists, otherwise false.
+
+   <dt><a>Cookie expiry time</a>
+   <dd><p>|cookie spec|["<code>expires</code>"] if it exists, otherwise leave unset to
+    indicate that this is a session cookie.
+
+   <dt><a>Cookie same site</a>
+   <dd><p>|cookie spec|["<code>sameSite</code>"] if it exists, otherwise leave unset to
+    indicate that no same site policy is defined.
+  </dl>
+
 1. Let |body| be a [=/map=] matching the <code>storage.SetCookieResult</code> production,
   with the <code>partitionKey</code> field set to |partition key|.
 1. Return [=success=] with data |body|.
