@@ -8428,9 +8428,9 @@ storage.PartitionKey {
 
 The <code>storage.PartitionKey</code> type describes namespaces within which the user agent may organize persistent data such as [=cookies=] and local storage.
 
-A [=remote end=] has a [=/set=] of <dfn>storage partition keys</dfn> which contains zero or more implementation-defined string values.
+A [=remote end=] has a [=/set=] of <dfn>storage partition key attributes</dfn> which contains zero or more implementation-defined string values.
 
-A [=remote end=] has a [=/map=] of <dfn>default values for storage partition keys</dfn> which contains zero or more implementation-defined entries. Each key must be a member of the [=storage partition keys=] which the [=remote end=] does not require as input to [=storage.getCookies=], [=storage.setCookie=], and [=storage.deleteCookie=]; the corresponding value is a the value which the [=remote end=] uses when one is not provided.
+A [=remote end=] has a [=/map=] of <dfn>default values for storage partition key attributes</dfn> which contains zero or more implementation-defined entries. Each key must be a member of the [=storage partition key attributes=] which the [=remote end=] does not require as input to [=storage.getCookies=], [=storage.setCookie=], and [=storage.deleteCookie=]; the corresponding value is a the value which the [=remote end=] uses when one is not provided.
 
 <div algorithm>
 To <dfn>expand a storage partition key spec</dfn> given |partition key spec|:
@@ -8439,9 +8439,9 @@ To <dfn>expand a storage partition key spec</dfn> given |partition key spec|:
   1. Let |partition key| be an empty [=/map=].
 1. Otherwise:
   1. Let |partition key| be |partition key spec|.
-1. For each |name| → |value| in the [=default values for storage partition keys=]:
+1. For each |name| → |default value| in the [=default values for storage partition key attributes=]:
   1. If |partition key|[|name|] does not [=map/exist=]:
-    1. [=map/Set=] |partition key|[|name|] to |value|.
+    1. [=map/Set=] |partition key|[|name|] to |default value|.
 1. Return |partition key|.
 
 </div>
