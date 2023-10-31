@@ -4207,7 +4207,7 @@ To <dfn>get the request data</dfn> given |request|:
 
   1. If |name| is a [=byte-case-insensitive=] match for "<code>Cookie</code>" then:
 
-    1. For each |cookie| in the user agent's <a>cookie store</a> that are included in
+    1. For each |cookie| in the user agent's [=cookie store=] that are included in
        |request|:
 
        Note: [[COOKIES]] defines some baseline requirements for which cookies in
@@ -8449,8 +8449,8 @@ To <dfn>expand a storage partition key spec</dfn> given |partition key spec|:
 <div algorithm>
 To <dfn>get the cookie store</dfn> given |storage partition key|:
 
-1. If a <a>cookie store</a> exists for |storage partition key|:
-  1. Return the matching <a>cookie store</a>.
+1. If a [=cookie store=] exists for |storage partition key|:
+  1. Return the matching [=cookie store=].
 1. Return [=error=] with [=error code=] [=no such storage partition=].
 
 </div>
@@ -8522,7 +8522,7 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
   <td><code>expiry-time</code>
   <td>"<code>expires</code>"
   <td>When the cookie expires, specified in seconds since
-   <a>Unix Epoch</a>. Must not be set if omitted when
+   [=Unix Epoch=]. Must not be set if omitted when
    [=storage.setCookie|setting a cookie=].
 
  </tr>
@@ -8667,20 +8667,20 @@ The [=remote end steps=] with <var ignore>session</var> and |command parameters|
   following cookie concepts listed in the [=table for cookie conversion=]:
 
   <dl>
-   <dt><a>Cookie path</a>
+   <dt>[=Cookie path=]
    <dd><p>|cookie spec|["<code>path</code>"] if it exists, otherwise "<code>/</code>".
 
-   <dt><a>Cookie secure only</a>
+   <dt>[=Cookie secure only=]
    <dd><p>|cookie spec|["<code>secure</code>"] if it exists, otherwise false.
 
-   <dt><a>Cookie HTTP only</a>
+   <dt>[=Cookie HTTP only=]
    <dd><p>|cookie spec|["<code>httpOnly</code>"] if it exists, otherwise false.
 
-   <dt><a>Cookie expiry time</a>
+   <dt>[=Cookie expiry time=]
    <dd><p>|cookie spec|["<code>expires</code>"] if it exists, otherwise leave unset to
     indicate that this is a session cookie.
 
-   <dt><a>Cookie same site</a>
+   <dt>[=Cookie same site=]
    <dd><p>|cookie spec|["<code>sameSite</code>"] if it exists, otherwise leave unset to
     indicate that no same site policy is defined.
   </dl>
