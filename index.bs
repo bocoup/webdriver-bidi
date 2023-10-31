@@ -8399,7 +8399,7 @@ events related to storage.
 StorageCommand = (
   storage.GetCookies //
   storage.SetCookie //
-  storage.DeleteCookie
+  storage.DeleteCookies
 )
 </pre>
 
@@ -8430,7 +8430,7 @@ The <code>storage.PartitionKey</code> type describes namespaces within which the
 
 A [=remote end=] has a [=/set=] of <dfn>storage partition key attributes</dfn> which contains zero or more implementation-defined string values.
 
-A [=remote end=] has a [=/map=] of <dfn>default values for storage partition key attributes</dfn> which contains zero or more implementation-defined entries. Each key must be a member of the [=storage partition key attributes=] which the [=remote end=] does not require as input to [=storage.getCookies=], [=storage.setCookie=], and [=storage.deleteCookie=]; the corresponding value is a the value which the [=remote end=] uses when one is not provided.
+A [=remote end=] has a [=/map=] of <dfn>default values for storage partition key attributes</dfn> which contains zero or more implementation-defined entries. Each key must be a member of the [=storage partition key attributes=] which the [=remote end=] does not require as input to [=storage.getCookies=], [=storage.setCookie=], and [=storage.deleteCookies=]; the corresponding value is a the value which the [=remote end=] uses when one is not provided.
 
 <div algorithm>
 To <dfn>expand a storage partition key spec</dfn> given |partition key spec|:
@@ -8689,20 +8689,20 @@ The [=remote end steps=] with <var ignore>session</var> and |command parameters|
 
 </div>
 
-#### The storage.deleteCookie Command ####  {#command-storage-deleteCookie}
+#### The storage.deleteCookies Command ####  {#command-storage-deleteCookies}
 
-The <dfn export for=commands>storage.deleteCookie</dfn> command removes zero or more [=cookies=] which [=match cookie|match=] a set of provided parameters.
+The <dfn export for=commands>storage.deleteCookies</dfn> command removes zero or more [=cookies=] which [=match cookie|match=] a set of provided parameters.
 
 <dl>
    <dt>Command Type</dt>
    <dd>
     <pre class="cddl remote-cddl">
-        storage.DeleteCookie = {
-          method: "storage.deleteCookie",
-          params: storage.DeleteCookieParameters,
+        storage.DeleteCookies = {
+          method: "storage.deleteCookies",
+          params: storage.DeleteCookiesParameters,
         }
 
-        storage.DeleteCookieParameters = {
+        storage.DeleteCookiesParameters = {
           cookie: storage.CookieFilter,
           ? partitionKey: storage.PartitionKey,
         }
