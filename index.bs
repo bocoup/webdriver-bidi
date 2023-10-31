@@ -8524,7 +8524,6 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
   <td>When the cookie expires, specified in seconds since
    [=Unix Epoch=]. Must not be set if omitted when
    [=storage.setCookie|setting a cookie=].
-
  </tr>
 
  <tr>
