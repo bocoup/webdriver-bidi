@@ -8565,7 +8565,7 @@ To <dfn>get matching cookies</dfn> given |cookie store| and |filter|:
 
 #### The storage.getCookies Command ####  {#command-storage-getCookies}
 
-The <dfn export for=commands>storage.getCookies</dfn> command  specific cookie characteristics (e.g. ) on the given top-level browsing context.
+The <dfn export for=commands>storage.getCookies</dfn> command retrieves zero or more [=cookies=] which [=match cookie|match=] a set of provided parameters.
 
 <dl>
    <dt>Command Type</dt>
@@ -8614,8 +8614,7 @@ The [=remote end steps=] with <var ignore>session</var> and |command parameters|
 
 #### The storage.setCookie Command ####  {#command-storage-setCookie}
 
-The <dfn export for=commands>storage.setCookie</dfn> command  specific cookie characteristics (e.g. ) on the
-given top-level browsing context.
+The <dfn export for=commands>storage.setCookie</dfn> command creates a new [=cookie=] in a cookie store, replacing any cookie in that store which matches according to [[COOKIES]].
 
 <dl>
    <dt>Command Type</dt>
@@ -8692,7 +8691,7 @@ The [=remote end steps=] with <var ignore>session</var> and |command parameters|
 
 #### The storage.deleteCookie Command ####  {#command-storage-deleteCookie}
 
-The <dfn export for=commands>storage.deleteCookie</dfn> command removes the specified cookie.
+The <dfn export for=commands>storage.deleteCookie</dfn> command removes zero or more [=cookies=] which [=match cookie|match=] a set of provided parameters.
 
 <dl>
    <dt>Command Type</dt>
