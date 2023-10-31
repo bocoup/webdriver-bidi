@@ -8393,7 +8393,7 @@ events related to storage.
 <pre class="cddl remote-cddl">
 StorageCommand = (
   storage.GetCookies //
-  storage.SetCookies //
+  storage.SetCookie //
   storage.DeleteCookie
 )
 </pre>
@@ -8403,7 +8403,7 @@ StorageCommand = (
 <pre class="cddl local-cddl">
 StorageResult = (
   storage.GetCookiesResult //
-  storage.SetCookiesResult
+  storage.SetCookieResult
 )
 </pre>
 
@@ -8425,7 +8425,7 @@ The <code>storage.PartitionKey</code> type describes namespaces within which the
 
 A [=remote end=] has a [=/set=] of <dfn>storage partition keys</dfn> which contains zero or more implementation-defined string values.
 
-A [=remote end=] has a [=/map=] of <dfn>default values for storage partition keys</dfn> which contains zero or more implementation-defined entries. Each key must be a member of the [=storage partition keys=] which the [=remote end=] does not require as input to [=storage.getCookies=], [=storage.setCookies=], and [=storage.deleteCookie=]; the corresponding value is a the value which the [=remote end=] uses when one is not provided.
+A [=remote end=] has a [=/map=] of <dfn>default values for storage partition keys</dfn> which contains zero or more implementation-defined entries. Each key must be a member of the [=storage partition keys=] which the [=remote end=] does not require as input to [=storage.getCookies=], [=storage.setCookie=], and [=storage.deleteCookie=]; the corresponding value is a the value which the [=remote end=] uses when one is not provided.
 
 <div algorithm>
 To <dfn>expand a storage partition key spec</dfn> given |partition key spec|:
@@ -8450,12 +8450,113 @@ To <dfn>get the cookie store</dfn> given |storage partition key|:
 
 </div>
 
+<p>The following <dfn>table for cookie conversion</dfn>
+ defines the cookie concepts relevant to WebDriver BiDi,
+ how these are referred to in [[COOKIES]],
+ as well as what keys they map to in a <a>serialized cookie</a>.
+
+<p>For informational purposes,
+ the table includes a brief non-normative description of the field.
+
+<table class=data>
+ <tr>
+  <th>Concept
+  <th>RFC 6265 Field
+  <th>JSON Key
+  <th>Description
+ </tr>
+
+ <tr>
+  <td><dfn>Cookie name</dfn>
+  <td><code>name</code>
+  <td>"<code>name</code>"
+  <td>The name of the cookie.
+ </tr>
+
+ <tr>
+  <td><dfn>Cookie value</dfn>
+  <td><code>value</code>
+  <td>"<code>value</code>"
+  <td>The cookie value.
+ </tr>
+
+ <tr>
+  <td><dfn>Cookie path</dfn>
+  <td><code>path</code>
+  <td>"<code>path</code>"
+  <td>The cookie path.
+   Defaults to "<code>/</code>"
+   if omitted when <a>adding a cookie</a>.
+ </tr>
+
+ <tr>
+  <td><dfn>Cookie domain</dfn>
+  <td><code>domain</code>
+  <td>"<code>domain</code>"
+  <td>The domain the cookie is visible to.
+   Defaults to the <a>current browsing context</a>’s
+   <a>active document</a>’s <a>URL</a> <a>domain</a>
+   if omitted when <a>adding a cookie</a>.
+ </tr>
+
+ <tr>
+  <td><dfn>Cookie secure only</dfn>
+  <td><code>secure-only-flag</code>
+  <td>"<code>secure</code>"
+  <td>Whether the cookie is a secure cookie.
+   Defaults to false if omitted when <a>adding a cookie</a>.
+ </tr>
+
+ <tr>
+  <td><dfn>Cookie HTTP only</dfn>
+  <td><code>http-only-flag</code>
+  <td>"<code>httpOnly</code>"
+  <td>Whether the cookie is an HTTP only cookie.
+   Defaults to false if omitted when <a>adding a cookie</a>.
+ </tr>
+
+ <tr>
+  <td><dfn>Cookie expiry time</dfn>
+  <td><code>expiry-time</code>
+  <td>"<code>expires</code>"
+  <td>When the cookie expires, specified in seconds since
+   <a>Unix Epoch</a>.  Must not be set if omitted when
+   <a>adding a cookie</a>.
+
+ </tr>
+
+ <tr>
+  <td><dfn>Cookie same site</dfn>
+  <td><code>samesite</code>
+  <td>"<code>sameSite</code>"
+  <td>Whether the cookie applies to a SameSite policy.
+    Defaults to None if omitted when <a>adding a cookie</a>.
+    Can be set to either <a><code>Lax</code></a> or <a><code>Strict</code></a>.
+ </tr>
+</table>
+
+<div algorithm>
+To <dfn>match cookie</dfn> given |stored cookie| and |filter|:
+
+1. For each |name| → |value| in |filter|:
+  1. If |name| is "<code>value</code>":
+    1. Set |value| to [=deserialize protocol bytes=] with |value|.
+  1. Let |field name| be the field name corresponding to the JSON key |name| in
+    the [=table for cookie conversion=].
+  1. If |stored cookie|[|field name|] does not equal |value|:
+    1. Return false.
+1. Return true.
+
+</div>
+
 <div algorithm>
 To <dfn>get matching cookies</dfn> given |cookie store| and |filter|:
 
-1. Issue: TODO: Specify. This likely has to replicate a lot of the logic from
-  RFC6265 because the algorithms there assume operations are scoped to a
-  particular domain, and this operation is not necessarily scoped in that way.
+1. Let |cookies| be a new list.
+1. For each |stored cookie| in |cookie store|:
+  1. If [=match cookie=] with |stored cookie| and |filter| is true:
+    1. Append the result of [=serialize cookie=] given |stored cookie| to |cookies|.
+1. Return |cookies|.
 
 </div>
 
@@ -8510,18 +8611,18 @@ The [=remote end steps=] with <var ignore>session</var> and |command parameters|
 
 </div>
 
-#### The storage.setCookies Command ####  {#command-storage-setCookies}
+#### The storage.setCookie Command ####  {#command-storage-setCookie}
 
-The <dfn export for=commands>storage.setCookies</dfn> command  specific cookie characteristics (e.g. ) on the
+The <dfn export for=commands>storage.setCookie</dfn> command  specific cookie characteristics (e.g. ) on the
 given top-level browsing context.
 
 <dl>
    <dt>Command Type</dt>
    <dd>
     <pre class="cddl remote-cddl">
-        storage.SetCookies = {
-          method: "storage.setCookies",
-          params: storage.SetCookiesParameters,
+        storage.SetCookie = {
+          method: "storage.setCookie",
+          params: storage.SetCookieParameters,
         }
 
         storage.PartialCookie = {
@@ -8531,8 +8632,8 @@ given top-level browsing context.
           ? ~ network.Cookie
         }
 
-        storage.SetCookiesParameters = {
-          cookies: [+storage.PartialCookie],
+        storage.SetCookieParameters = {
+          cookie: storage.PartialCookie,
           ? partitionKey: storage.PartitionKey,
         }
     </pre>
@@ -8540,14 +8641,14 @@ given top-level browsing context.
    <dt>Result Type</dt>
    <dd>
     <pre class="cddl local-cddl">
-      storage.SetCookiesResult = {
+      storage.SetCookieResult = {
         partitionKey: storage.partitionKey
       }
     </pre>
    </dd>
 </dl>
 
-<div algorithm="remote end steps for script.setCookies">
+<div algorithm="remote end steps for script.setCookie">
 The [=remote end steps=] with <var ignore>session</var> and |command parameters| are:
 
 1. Let |partition key spec| be the value of the <code>partitionKey</code> field of
@@ -8555,10 +8656,11 @@ The [=remote end steps=] with <var ignore>session</var> and |command parameters|
 1. Let |partition key| be the result of [=expand a storage partition key spec|expanding=] |partition key spec|.
 1. Let |store| be the result of [=trying=] to [=get the cookie store=] with
   |partition key|.
-1. Let |cookie specs| by the value of the <code>cookies</code> field of |commmand parameters|.
-1. For each |cookie spec| in |cookie specs|:
-  1. Issue: TODO: Specify.
-1. Let |body| be a [=/map=] matching the <code>storage.SetCookiesResult</code> production,
+1. Let |cookie spec| be the value of the <code>cookie</code> field of |commmand parameters|.
+1. If |cookie spec|["<code>size</code>"] exists:
+  1. Return an [=error=] with [=error code=] [=invalid argument=].
+1. Issue: TODO: Specify.
+1. Let |body| be a [=/map=] matching the <code>storage.SetCookieResult</code> production,
   with the <code>partitionKey</code> field set to |partition key|.
 1. Return [=success=] with data |body|.
 
