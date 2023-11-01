@@ -521,6 +521,9 @@ with the following additional codes:
 
   <dt><dfn>unable to close browser</dfn>
   <dd>Tried to close the browser, but failed to do so.
+
+  <td><dfn>unable to set cookie</dfn>
+  <dd>Tried to create a cookie, but the user agent rejected it.
 </dl>
 
 <pre class="cddl local-cddl">
@@ -8684,6 +8687,9 @@ The [=remote end steps=] with <var ignore>session</var> and |command parameters|
    <dd><p>|cookie spec|["<code>sameSite</code>"] if it exists, otherwise leave unset to
     indicate that no same site policy is defined.
   </dl>
+
+  If this step is aborted without inserting a cookie into the cookie store, return
+  [=error=] with [=error code=] [=unable to set cookie=].
 
 1. Let |body| be a [=/map=] matching the <code>storage.SetCookieResult</code> production,
   with the <code>partitionKey</code> field set to |partition key|.
